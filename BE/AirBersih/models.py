@@ -26,10 +26,10 @@ class GolonganPelanggan(models.Model):
     id_golongan_pelanggan = models.AutoField(primary_key=True)
     
     kelompok_pelanggan = models.CharField(max_length=100)
-    tarif_0_3 = models.FloatField()  # Tarif untuk penggunaan 0-3 m3
-    tarif_3_10 = models.FloatField()  # Tarif untuk penggunaan 3-10 m3
-    tarif_10_20 = models.FloatField()  # Tarif untuk penggunaan 10-20 m3
-    tarif_diatas_20 = models.FloatField()  # Tarif untuk penggunaan di atas 20 m3
+    tarif_0_3 = models.FloatField(help_text='Dalam rupiah (Rp), untuk penggunaan 0-3 m3')
+    tarif_3_10 = models.FloatField(help_text='Dalam rupiah (Rp), untuk penggunaan 3-10 m3') 
+    tarif_10_20 = models.FloatField(help_text='Dalam rupiah (Rp), untuk penggunaan 10-20 m3')
+    tarif_diatas_20 = models.FloatField(help_text='Dalam rupiah (Rp), untuk penggunaan di atas 20 m3')
 
     def __str__(self):
         return self.kelompok_pelanggan
@@ -79,19 +79,31 @@ class Petugas(models.Model):
         return f"Nama: {self.nama_petugas} - NIK: {self.nik_petugas}"
 
 class SumberAir(models.Model):
+    SSumberAir = (
+        ('Atf', 'Aktif'),
+        ('TdkAtf', 'Tidak Aktif'),
+    )
+    
     id_sumber_air = models.AutoField(primary_key=True)
     
     nama_sumber_air = models.CharField(max_length=100)
     alamat_sumber_air = models.TextField()
     jenis = models.CharField(max_length=50)
     kualitas = models.CharField(max_length=50)
-    kapasitas = models.IntegerField()
-    status_sumber_air = models.CharField(max_length=50)
+    kapasitas = models.IntegerField(help_text='Dalam liter per detik (lps)')
+    status_sumber_air = models.CharField(max_length=20, choices=SSumberAir)
 
     def __str__(self):
         return self.nama_sumber_air
     
 class Pengaduan(models.Model):
+    SPengaduan = (
+        ('Tkr', 'Terkirim'),
+        ('Prs', 'Diproses'),
+        ('Sls', 'Selesai'),
+        ('Btl', 'Dibatalkan'),
+    )
+    
     id_pengaduan = models.AutoField(primary_key=True)
     
     id_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pengaduan')
@@ -99,7 +111,7 @@ class Pengaduan(models.Model):
     tanggal_pengaduan = models.DateField()
     jenis_pengaduan = models.CharField(max_length=50)
     isi_pengaduan = models.TextField()
-    status_pengaduan = models.CharField(max_length=50)
+    status_pengaduan = models.CharField(max_length=20, choices=SPengaduan)
     
     id_petugas = models.ForeignKey(Petugas, on_delete=models.CASCADE, related_name='pengaduan')
     tanggapan_petugas = models.TextField()
@@ -108,29 +120,40 @@ class Pengaduan(models.Model):
         return f"User: {self.id_user} - Jenis Pengaduan: {self.jenis_pengaduan}"
 
 class Tagihan(models.Model):
+    STagihan = (
+        ('BlmByr', 'Belum Dibayar'),
+        ('SdhByr', 'Sudah Dibayar'),
+    )
+    
     id_tagihan = models.AutoField(primary_key=True)
     
     id_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tagihan')
     
     periode = models.CharField(max_length=50)
-    penggunaan_air = models.FloatField()
-    nominal_tagihan = models.IntegerField()
+    penggunaan_air = models.FloatField(help_text='Penggunaan air dalam m3')
+    nominal_tagihan = models.IntegerField(help_text='Dalam rupiah (Rp)')
     tenggat = models.DateField()
-    status_tagihan = models.CharField(max_length=20)
+    status_tagihan = models.CharField(max_length=20, choices=STagihan)
     
     def __str__(self):
         return f"Tagihan #{self.id_tagihan} - User: {self.id_user} - Periode: {self.periode}"
     
 class Pembayaran(models.Model):
+    SPembayaran = (
+        ('Prs', 'Diproses'),
+        ('Sls', 'Selesai'),
+        ('Btl', 'Dibatalkan'),
+    )
+    
     id_pembayaran = models.AutoField(primary_key=True)
     
     id_tagihan = models.ForeignKey(Tagihan, on_delete=models.CASCADE, related_name='pembayaran')
     id_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pembayaran')
     
-    nominal_pembayaran = models.IntegerField()
+    nominal_pembayaran = models.IntegerField(help_text='Dalam rupiah (Rp)')
     metode_pembayaran = models.CharField(max_length=50)
     tanggal_pembayaran = models.DateField()
-    status_pembayaran = models.CharField(max_length=20)
+    status_pembayaran = models.CharField(max_length=20, choices=SPembayaran)
 
     def __str__(self):
         return f"Pembayaran #{self.id_pembayaran} - User: {self.id_user} - Tagihan: {self.id_tagihan}"
